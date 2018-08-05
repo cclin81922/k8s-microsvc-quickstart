@@ -1,0 +1,51 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: microsvc
+  labels:
+    app: microsvc
+spec:
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: key-json
+  - name: config-volume
+    configMap:
+      name: gcp-project
+  containers:
+  - name: microsvc
+    image: {{ .Values.github.user }}/k8s-microsvc-quickstart:latest
+    imagePullPolicy: Never
+    env:
+    - name: GCP_PROJECT
+      valueFrom:
+        configMapKeyRef:
+          name: gcp-project
+          key: gcp-project-id
+    - name: GCP_KEYJSON
+      value: /etc/secret-volume/key.json
+    volumeMounts:
+    - name: secret-volume
+      readOnly: true
+      mountPath: "/etc/secret-volume"
+    ports:
+    - containerPort: 8080
+    - containerPort: 50051
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: microsvc
+spec:
+  type: NodePort
+  selector:
+    app: microsvc
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+    name: metrics
+  - port: 50051
+    targetPort: 50051
+    nodePort: 30051
+    name: microsvc

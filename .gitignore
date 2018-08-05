@@ -1,0 +1,6 @@
+key.json
+.envrc
+out/*
+*.swp
+*.pyc
+node_modules/*
